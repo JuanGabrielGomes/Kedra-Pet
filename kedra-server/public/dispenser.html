@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kedra Pet - Dispenser</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(90deg, cyan, white);
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+        }
+        .dispenser-container {
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            color: white;
+            padding: 2.5rem;
+        }
+        .btn-custom {
+            background-color: cyan;
+            color: black;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            background-color: darkslategrey;
+            color: white;
+        }
+        #status, #resultado {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row min-vh-100 align-items-center justify-content-center">
+            <div class="col-md-6">
+                <div class="dispenser-container text-center">
+                    <h1 class="mb-4">Controle do Dispenser</h1>
+                    <p id="status">Status: Não conectado</p>
+
+                    <button id="conectar" class="btn btn-custom w-100 mb-3">Conectar ao ESP32</button>
+                    <button id="distribuir" class="btn btn-custom w-100 mb-3">Distribuir Alimento</button>
+                    <button id="calibrarBalanca" class="btn btn-custom w-100 mb-3">Calibrar Balança</button>
+                    <button id="lerPeso" class="btn btn-custom w-100 mb-3">Ler Peso Atual</button>
+
+                    <p id="resultado">Resultado: Nenhuma ação realizada</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variável para o WebSocket
+        let socket;
+
+        // Função para conectar ao ESP32
+        document.getElementById('conectar').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                alert('Já conectado ao ESP32!');
+                return;
+            }
+
+            // Substitua pelo IP do ESP32
+            socket = new WebSocket('ws://192.168.1.100:8080');
+
+            socket.onopen = () => {
+                document.getElementById('status').textContent = 'Status: Conectado';
+                alert('Conectado ao ESP32!');
+            };
+
+            socket.onclose = () => {
+                document.getElementById('status').textContent = 'Status: Desconectado';
+                alert('Conexão com ESP32 perdida.');
+            };
+
+            socket.onerror = (error) => {
+                console.error('Erro na conexão:', error);
+                alert('Erro ao conectar ao ESP32.');
+            };
+
+            socket.onmessage = (event) => {
+                const dados = JSON.parse(event.data);
+                if (dados.evento === 'lerPesoAtual') {
+                    document.getElementById('resultado').textContent = `Peso atual: ${dados.peso}g`;
+                } else {
+                    document.getElementById('resultado').textContent = `Resposta: ${dados.status || dados.mensagem}`;
+                }
+            };
+        });
+
+        // Função para distribuir alimento
+        document.getElementById('distribuir').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                const quantidade = prompt('Digite a quantidade de alimento em gramas:');
+                socket.send(JSON.stringify({
+                    acao: 'distribuirAlimento',
+                    dados: { quantidade: parseFloat(quantidade) }
+                }));
+                document.getElementById('resultado').textContent = 'Distribuindo alimento...';
+            } else {
+                alert('Conecte-se ao ESP32 primeiro!');
+            }
+        });
+
+        // Função para calibrar a balança
+        document.getElementById('calibrarBalanca').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ acao: 'calibrarBalanca' }));
+                document.getElementById('resultado').textContent = 'Calibrando balança...';
+            } else {
+                alert('Conecte-se ao ESP32 primeiro!');
+            }
+        });
+
+        // Função para ler o peso atual
+        document.getElementById('lerPeso').addEventListener('click', () => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ acao: 'lerPesoAtual' }));
+                document.getElementById('resultado').textContent = 'Lendo peso atual...';
+            } else {
+                alert('Conecte-se ao ESP32 primeiro!');
+            }
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

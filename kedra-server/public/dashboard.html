@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kedra Pet - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(90deg, cyan, white);
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+        }
+        .dashboard-container {
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            color: white;
+            padding: 2.5rem;
+        }
+        .btn-custom {
+            background-color: cyan;
+            color: black;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            background-color: darkslategrey;
+            color: white;
+        }
+        ul {
+            padding: 0;
+            list-style: none;
+            color: white;
+        }
+        li {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row min-vh-100 align-items-center justify-content-center">
+            <div class="col-md-8">
+                <div class="dashboard-container">
+                    <h1 class="mb-4">Dashboard - Kedra Pet</h1>
+                    <h2 class="mb-3">Gerenciar Refeições</h2>
+                    <button id="visualizarRefeicoes" class="btn btn-custom mb-3 w-100">Ver Refeições</button>
+                    <ul id="listaRefeicoes"></ul>
+
+                    <h2 class="mt-4">Cadastrar Nova Refeição</h2>
+                    <form>
+                        <div class="mb-3">
+                            <input type="text" id="inputNomeRefeicao" class="form-control form-control-lg" placeholder="Nome da Refeição">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" id="inputQuantidade" class="form-control form-control-lg" placeholder="Quantidade (g)">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" id="inputIntervalo" class="form-control form-control-lg" placeholder="Intervalo (min)">
+                        </div>
+                        <button type="button" id="cadastrarRefeicao" class="btn btn-custom w-100">Cadastrar Refeição</button>
+                    </form>
+
+                    <h2 class="mt-4">Controle do Dispenser</h2>
+                    <button id="irParaDispenser" class="btn btn-custom w-100">Ir para o Dispenser</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        
+    // Função para listar refeições no dashboard
+if (document.getElementById('visualizarRefeicoes')) {
+    document.getElementById('visualizarRefeicoes').addEventListener('click', async () => {
+        const userId = localStorage.getItem('userId');
+        const lista = document.getElementById('listaRefeicoes');
+
+        try {
+            const resposta = await fetch(`/api/listarRefeicoes/${userId}`);
+            const dados = await resposta.json();
+
+            lista.innerHTML = ''; // Limpa a lista de refeições
+
+            if (dados.sucesso) {
+                Object.entries(dados.dados).forEach(([key, refeicao]) => {
+                    const item = document.createElement('li');
+                    item.textContent = `${refeicao.nome}: ${refeicao.quantidade}g a cada ${refeicao.intervalo} min`;
+                    lista.appendChild(item);
+                });
+            } else {
+                alert(dados.mensagem);
+            }
+        } catch (error) {
+            console.error('Erro ao listar refeições:', error);
+            alert('Erro ao buscar refeições. Tente novamente.');
+        }
+    });
+}
+
+// Função para cadastrar uma nova refeição
+if (document.getElementById('cadastrarRefeicao')) {
+    document.getElementById('cadastrarRefeicao').addEventListener('click', async () => {
+        const userId = localStorage.getItem('userId');
+        const nome = document.getElementById('inputNomeRefeicao').value;
+        const quantidade = parseFloat(document.getElementById('inputQuantidade').value);
+        const intervalo = parseInt(document.getElementById('inputIntervalo').value);
+
+        try {
+            const resposta = await fetch('/api/cadastrarRefeicao', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, nome, quantidade, intervalo })
+            });
+
+            const dados = await resposta.json();
+            alert(dados.mensagem);
+        } catch (error) {
+            console.error('Erro ao cadastrar refeição:', error);
+            alert('Erro ao cadastrar refeição. Tente novamente.');
+        }
+    });
+}
+
+// Função para redirecionar para a página do dispenser
+if (document.getElementById('irParaDispenser')) {
+    document.getElementById('irParaDispenser').addEventListener('click', () => {
+        window.location.href = '/dispenser.html';
+    });
+}
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

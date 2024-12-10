@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kedra Pet - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(90deg, cyan, white);
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+        }
+        .login-container {
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            color: white;
+            padding: 2.5rem;
+        }
+        .btn-custom {
+            background-color: cyan;
+            color: black;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            background-color: darkslategrey;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row min-vh-100 align-items-center">
+            <div class="col-md-6 text-center">
+                <img src="logo_comp._kedra-removebg-preview (1).png" alt="Logo Kedra Pet" class="img-fluid" style="max-width: 600px;">
+            </div>
+            <div class="col-md-4">
+                <div class="login-container">
+                    <h1 class="mb-4">Bem-vindo<br>a Kedra Pet</h1>
+                    <h2 class="mb-4">Login</h2>
+                    <form>
+                        <div class="mb-3">
+                            <input type="email" id="inputEmail" class="form-control form-control-lg" placeholder="E-mail">
+                        </div>
+                        <div class="mb-3">
+                            <input type="password" id="inputSenha" class="form-control form-control-lg" placeholder="Senha">
+                        </div>
+                        <div class="mb-3">
+                            <button type="button" id="login" class="btn btn-custom btn-lg w-100">Entrar</button>
+                        </div>
+                        <div class="mb-3">
+                            <a href="sign-up.html" class="btn btn-custom btn-lg w-100">Cadastre-se</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    
+    document.getElementById('login').addEventListener('click', async () => {
+        const email = document.getElementById('inputEmail').value;
+        const senha = document.getElementById('inputSenha').value;
+
+        try {
+        const resposta = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, senha })
+        });
+
+        const dados = await resposta.json();
+        alert(dados.mensagem);
+
+        if (dados.sucesso) {
+            localStorage.setItem('userId', dados.userId); // Armazena o ID do usuário
+            window.location.href = '/dashboard.html'; // Redireciona para o dashboard
+        }
+        } catch (error) {
+        console.error('Erro ao fazer login:', error);
+        alert('Erro ao fazer login. Tente novamente.');
+        }
+    });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
